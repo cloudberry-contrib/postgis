@@ -1,4 +1,4 @@
-Summary:        Geospatial extensions for Cloudberry Database
+Summary:        Geospatial extensions for Apache Cloudberry
 License:        GPLv2
 Name:           postgis
 Version:        %{postgis_ver}
@@ -10,7 +10,7 @@ AutoProv:       no
 Provides:       postgis = %{postgis_ver}
 
 %description
-The PostGIS module provides geospatial extensions for Cloudberry Database.
+The PostGIS module provides geospatial extensions for Apache Cloudberry.
 
 %install
 make -C %{postgis_dir} BLD_TOP=%{bld_top} install prefix=%{buildroot}/temp

@@ -9,6 +9,9 @@
 
 ---
 
+> [!NOTE]
+> Please note that this repository is maintained by community members, and it is not an official Apache Cloudberry project.
+
 ## What's PostGIS
 
 [PostGIS](https://postgis.net/) extends the capabilities of the PostgreSQL by adding support for storing, indexing, and querying geospatial data. This repo is dedicated and optimized for Apache Cloudberry clusters.

@@ -3,7 +3,7 @@ Architecture: #arch
 OS: #os
 Version: ossv3.3.2+HashData_pv2.5_Cloudberry1.0.0
 GPDBVersion: #gpver
-Description: PostGIS provides spatial database functions for the Cloudberry Database.
+Description: PostGIS provides spatial database functions for the Apache Cloudberry.
 PostInstall:
 - Master: "echo 'Please run the following commands to enable the PostGIS package:
 CREATE EXTENSION postgis;'"

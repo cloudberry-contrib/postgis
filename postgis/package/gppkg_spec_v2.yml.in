@@ -4,7 +4,7 @@ Architecture: #arch
 OS: #os
 GPDBVersion: #gpver
 Version: ossv3.3.2+HashData_pv2.5_Cloudberry1.0.0
-Description: PostGIS provides spatial database functions for the Cloudberry Database.
+Description: PostGIS provides spatial database functions for the Apache Cloudberry.
 PreInstall:
   All: |
        # Check if libtiff.so.* is available in the shared library cache
