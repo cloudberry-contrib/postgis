@@ -406,7 +406,7 @@ WITH geometry AS
     SELECT ST_AsText(ST_AsMVTGeom(
 	ST_GeomFromText('GEOMETRYCOLLECTION(LINESTRING(10 10, 20 20), POLYGON((110 90, 110 110, 90 110, 90 90, 110 90)), LINESTRING(20 20, 15 15))'),
 	ST_MakeBox2D(ST_Point(0, 0), ST_Point(100, 100)),
-    100, 0, true))) as g
+    100, 0, true)) as g
 )
 SELECT 'PG63',
         ST_Area(g),

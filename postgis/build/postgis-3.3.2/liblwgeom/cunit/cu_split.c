@@ -132,7 +132,11 @@ static void test_lwgeom_split(void)
 	ret = lwgeom_normalize(lwgeom_split(geom, blade));
 	CU_ASSERT(ret != NULL);
 	wkt = lwgeom_to_ewkt(ret);
-	in_wkt = "SRID=1;GEOMETRYCOLLECTION(LINESTRING(0 1,7 1),LINESTRING(7 1,10 1))";
+	tmp1 = lwgeom_from_wkt(
+	    "SRID=1;GEOMETRYCOLLECTION(LINESTRING(0 1,7 1),LINESTRING(7 1,10 1))",
+	    LW_PARSER_CHECK_NONE);
+	tmp2 = lwgeom_normalize(tmp1);
+	in_wkt = lwgeom_to_ewkt(tmp2);
 	ASSERT_STRING_EQUAL(wkt, in_wkt);
 	lwfree(wkt);
 	lwgeom_free(ret);

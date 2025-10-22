@@ -52,7 +52,7 @@ BEGIN {
 our $DB = $ENV{"POSTGIS_REGRESS_DB"} || "postgis_reg";
 our $REGDIR = abs_path(dirname($0));
 our $TOP_BUILDDIR = $ENV{"POSTGIS_TOP_BUILD_DIR"} || ${REGDIR} . '/..';
-our $sysdiff = !system("/usr/local/greenplum-db/lib/postgresql/pgxs/src/test/regress/gpdiff.pl -b -w -gpd_init " . $REGDIR . "/global_init_file --strip-trailing-cr $0 $0 2> /dev/null");
+our $sysdiff = !system("$ENV{GPHOME}/lib/postgresql/pgxs/src/test/regress/gpdiff.pl -b -w -gpd_init " . $REGDIR . "/global_init_file --strip-trailing-cr $0 $0 2> /dev/null");
 
 ##################################################################
 # Parse command line opts
@@ -1469,7 +1469,8 @@ sub prepare_spatial_extensions
 
 	if ( $OPT_WITH_TIGER )
 	{
-		my $sql = "CREATE EXTENSION postgis_tiger_geocoder CASCADE";
+		my $sql = "CREATE EXTENSION plpython3u;
+		           CREATE EXTENSION postgis_tiger_geocoder CASCADE";
 		if ( $OPT_UPGRADE_FROM ) {
 			$sql .= " VERSION '" . $OPT_UPGRADE_FROM . "'";
 		}
@@ -1836,6 +1837,7 @@ sub drop_spatial_extensions
     {
         $cmd = "psql $psql_opts -c \"DROP EXTENSION IF EXISTS postgis_tiger_geocoder;
                 DROP EXTENSION IF EXISTS fuzzystrmatch;
+                DROP EXTENSION IF EXISTS plpython3u;
                 DROP SCHEMA IF EXISTS tiger;
                 DROP SCHEMA IF EXISTS tiger_data;
                 \" $DB >> $REGRESS_LOG 2>&1";
@@ -1942,7 +1944,7 @@ sub diff
 	if ( $sysdiff ) {
 
 		#$diffstr = `diff --strip-trailing-cr -u $expected_file $obtained_file 2>&1`;
-		$diffstr = `/usr/local/greenplum-db/lib/postgresql/pgxs/src/test/regress/gpdiff.pl -b -w -gpd_init $REGDIR/global_init_file --strip-trailing-cr $expected_file $obtained_file 2>&1`;
+		$diffstr = `$ENV{GPHOME}/lib/postgresql/pgxs/src/test/regress/gpdiff.pl -b -w -gpd_init $REGDIR/global_init_file --strip-trailing-cr $expected_file $obtained_file 2>&1`;
 
 		return $diffstr;
 	}

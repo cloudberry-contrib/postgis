@@ -32,8 +32,8 @@ s/\s*\(seg\d+[^\(]*\)//
 m/\s*\([^\(]*\.c:\d+\)/
 s/\s*\([^\(]*\.c:\d+\)//
 
-m/WARNING:  autovacuum is not supported in Greenplum\n/
-s/WARNING:  autovacuum is not supported in Greenplum\n//
+m/WARNING:  autovacuum is not supported in Cloudberry\n/
+s/WARNING:  autovacuum is not supported in Cloudberry\n//
 
 m/NOTICE:  One or more columns in the following table(s) do not have statistics: .*\n/
 s/NOTICE:  One or more columns in the following table(s) do not have statistics: .*\n//
