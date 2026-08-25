@@ -1,0 +1,66 @@
+#!/usr/bin/make -f
+
+DH_VERBOSE = 1
+DPKG_EXPORT_BUILDFLAGS = 1
+
+# The staged payload (debian/build/*) already mirrors the target filesystem
+# with absolute paths (PostGIS files under /usr/cloudberry-db — the real tree
+# the Cloudberry .deb owns, NOT the /usr/local/cloudberry-db symlink — the
+# bundled geospatial libs under their /usr/local prefixes, and the linker
+# config under /etc), so debian/install drops it onto the target root as-is.
+DEBIAN_DESTINATION := $(shell pwd)/debian/build
+
+# Version stamped onto the produced package (exported by build-deb.sh).
+POSTGIS_PKG_VERSION := $(POSTGIS_PKG_VERSION)
+PACKAGE_POSTGIS := $(shell cat debian/control | egrep "^Package: " | cut -d " " -f 2)
+
+include /usr/share/dpkg/default.mk
+
+%:
+	dh $@ --parallel
+
+# The PostGIS payload is pre-staged into debian/build by build-postgis.sh
+# (a DESTDIR install that captures ONLY the extension's own files). The
+# debian/install file maps debian/build/* onto $(GPHOME_TARGET).
+override_dh_auto_install:
+	@if [ -z "$$(ls -A $(DEBIAN_DESTINATION) 2>/dev/null)" ]; then \
+		echo "ERROR: $(DEBIAN_DESTINATION) is empty."; \
+		echo "Run build-postgis.sh with DEB_BUILD_DIR=$(DEBIAN_DESTINATION) first."; \
+		exit 1; \
+	fi
+	@echo "Packaging staged PostGIS payload from $(DEBIAN_DESTINATION)"
+
+override_dh_auto_build:
+	echo "Skipping build (PostGIS is built by build-postgis.sh)"
+
+override_dh_auto_clean:
+	echo "Skipping clean"
+
+override_dh_auto_configure:
+	echo "Skipping configure"
+
+override_dh_auto_test:
+	echo "Skipping auto test"
+
+override_dh_gencontrol:
+	echo "using version ${POSTGIS_PKG_VERSION} for PostGIS package"
+	dh_gencontrol -- -v${POSTGIS_PKG_VERSION} -p${PACKAGE_POSTGIS}
+
+# Auto-detect distro-level runtime dependencies (libgmpxx, boost, xerces,
+# and any libraries the source-built GDAL pulls in) via ${shlibs:Depends}.
+# The bundled GEOS/PROJ/GDAL/SFCGAL SONAMEs are not provided by any dpkg
+# package, so --ignore-missing-info skips them instead of failing. Point
+# LD_LIBRARY_PATH at the staged bundle so dpkg-shlibdeps can resolve the
+# inter-library links between the bundled prefixes.
+override_dh_shlibdeps:
+	LD_LIBRARY_PATH="$$(find $(DEBIAN_DESTINATION)/usr/local -maxdepth 2 -type d \( -name lib -o -name lib64 \) 2>/dev/null | tr '\n' ':')$$LD_LIBRARY_PATH" \
+	    dh_shlibdeps --dpkg-shlibdeps-params=--ignore-missing-info
+
+# We deliberately ship the bundled geospatial runtime under /usr/local so it
+# matches the compiled-in library/data paths and the ld.so.conf.d entry.
+# dh_usrlocal enforces the Debian policy that packages must not place files
+# under /usr/local, so disable it for this vendor package.
+override_dh_usrlocal:
+
+clean_dev_local:
+	rm -rf ${DEBIAN_DESTINATION}

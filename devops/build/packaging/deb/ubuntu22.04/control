@@ -1,0 +1,35 @@
+Source: apache-cloudberry-db-postgis-@CBDB_BRANCH@
+Maintainer: Apache Cloudberry (Incubating) <dev@cloudberry.apache.org>
+Section: database
+Priority: optional
+Build-Depends: debhelper (>= 9)
+Standards-Version: 4.5.0
+
+Package: apache-cloudberry-db-postgis-@CBDB_BRANCH@
+Architecture: any
+Provides: apache-cloudberry-db-postgis
+Conflicts: apache-cloudberry-db-postgis
+Replaces: apache-cloudberry-db-postgis
+Depends: ${shlibs:Depends},
+    ${misc:Depends},
+    apache-cloudberry-db-incubating,
+    libgmp10,
+    libgmpxx4ldbl,
+    libboost-serialization1.74.0,
+    libxerces-c3.2,
+    libstdc++6,
+    libc6
+Description: PostGIS spatial extension for Apache Cloudberry (Incubating), @CBDB_BRANCH@ build
+ This package provides the PostGIS extension built against an Apache Cloudberry
+ (incubating) installation: the extension shared libraries (postgis,
+ postgis_raster, ...), their SQL/control files under the Cloudberry
+ share/extension directory, and the loader/dumper utilities (shp2pgsql,
+ pgsql2shp, raster2pgsql). These co-populate the Cloudberry tree at
+ /usr/cloudberry-db (the real directory the apache-cloudberry-db-incubating
+ package owns) and therefore do not conflict with it.
+ .
+ It also bundles the custom geospatial runtime stack the extension was linked
+ against — GEOS, PROJ, GDAL and SFCGAL — under /usr/local, along with an
+ /etc/ld.so.conf.d entry so the dynamic linker can resolve them (ldconfig is
+ run from the maintainer scripts). The package therefore requires only a
+ matching Apache Cloudberry installation plus a few base system libraries.

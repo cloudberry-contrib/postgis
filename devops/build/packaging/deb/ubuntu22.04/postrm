@@ -1,0 +1,10 @@
+#!/bin/bash
+
+set -e
+
+# Refresh the linker cache after the bundled libraries are removed.
+if [ "$1" = remove ] || [ "$1" = purge ]; then
+  ldconfig || true
+fi
+
+exit 0

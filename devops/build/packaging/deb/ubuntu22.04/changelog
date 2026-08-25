@@ -1,0 +1,5 @@
+apache-cloudberry-db-postgis (3.3.2) jammy; urgency=medium
+
+  * Initial PostGIS extension package for Apache Cloudberry.
+
+ -- Cloudberry Team <dev@cloudberry.apache.org>  Mon, 25 Aug 2026 00:00:00 +0000
