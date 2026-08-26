@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!--
+  Licensed to the Apache Software Foundation (ASF) under one
+  or more contributor license agreements.  See the NOTICE file
+  distributed with this work for additional information
+  regarding copyright ownership.  The ASF licenses this file
+  to you under the Apache License, Version 2.0 (the
+  "License"); you may not use this file except in compliance
+  with the License.  You may obtain a copy of the License at
+
+    http://www.apache.org/licenses/LICENSE-2.0
+
+  Unless required by applicable law or agreed to in writing,
+  software distributed under the License is distributed on an
+  "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+  KIND, either express or implied.  See the License for the
+  specific language governing permissions and limitations
+  under the License.
+-->
+<!--
+  Apache RAT (Release Audit Tool) configuration for the PostGIS-for-Cloudberry
+  packaging assets.
+
+  IMPORTANT: this RAT run is deliberately scoped to devops/** ONLY. The rest of
+  this repository (postgis/, utility/, the top-level LICENSE, ...) is upstream
+  PostGIS, licensed under GPL v2 — it must NOT be scanned for Apache license
+  headers. Only the Apache-licensed packaging assets we add under devops/ are
+  audited here.
+
+  Run locally with:
+    mvn clean verify -Drat.consoleOutput=true
+-->
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+  <modelVersion>4.0.0</modelVersion>
+  <groupId>org.apache.cloudberry</groupId>
+  <artifactId>apache-cloudberry-postgis-devops</artifactId>
+  <version>1.0.0</version>
+  <packaging>pom</packaging>
+
+  <build>
+    <plugins>
+      <plugin>
+        <groupId>org.apache.rat</groupId>
+        <artifactId>apache-rat-plugin</artifactId>
+        <version>0.16.1</version>
+        <configuration>
+          <consoleOutput>true</consoleOutput>
+
+          <!-- Audit ONLY the Apache-licensed packaging assets under devops/. -->
+          <includes>
+            <include>devops/**</include>
+          </includes>
+
+          <excludes>
+            <!--
+                Ubuntu debian packaging files (control, changelog, compat,
+                source/format, ...) use strict formats that do not support
+                comment headers, so they cannot carry an ASF license header.
+                Exclude the whole directory from the RAT scan.
+            -->
+            <exclude>devops/build/packaging/deb/ubuntu22.04/**</exclude>
+          </excludes>
+        </configuration>
+        <executions>
+          <execution>
+            <phase>verify</phase>
+            <goals>
+              <goal>check</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+    </plugins>
+  </build>
+</project>
