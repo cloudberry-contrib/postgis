@@ -90,6 +90,8 @@ dimensionality cases. (2D geometry) &&& (3D column), etc.
 #include "funcapi.h"
 #include "access/heapam.h"
 #include "catalog/pg_type.h"
+#include "catalog/pg_class.h"
+#include "catalog/pg_statistic.h"
 #include "access/relscan.h"
 
 #include "executor/spi.h"
@@ -180,6 +182,38 @@ Datum geometry_estimated_extent(PG_FUNCTION_ARGS);
  */
 #define STATISTIC_SLOT_ND 3
 #define STATISTIC_SLOT_2D 4
+
+/*
+ * Cloudberry: for leaf partitions, ANALYZE writes HyperLogLog statistics
+ * (STATISTIC_KIND_HLL / STATISTIC_KIND_FULLHLL) into the last slot
+ * (STATISTIC_NUM_SLOTS - 1) *after* compute_stats returns, overwriting
+ * whatever is there. That is STATISTIC_SLOT_2D, so the 2D histogram was
+ * silently lost and the && selectivity estimator found no stats.
+ *
+ * Returns the slot to store our histogram in, or -1 if none is free.
+ */
+static int
+gserialized_stats_slot(const VacAttrStats *stats, int preferred_slot)
+{
+#ifdef STATISTIC_KIND_HLL
+	Oid relid = stats->attr->attrelid;
+
+	if (get_rel_relkind(relid) == RELKIND_RELATION &&
+	    get_rel_relispartition(relid))
+	{
+		int i;
+
+		/* Leave the last slot to Cloudberry's HLL stats */
+		for (i = 0; i < STATISTIC_NUM_SLOTS - 1; i++)
+		{
+			if (stats->stakind[i] == 0)
+				return i;
+		}
+		return -1;
+	}
+#endif
+	return preferred_slot;
+}
 
 /*
 * The SD factor restricts the side of the statistics histogram
@@ -1788,13 +1822,25 @@ compute_gserialized_stats_mode(VacAttrStats *stats, AnalyzeAttrFetchFunc fetchfu
 	/* Put this histogram data into the right slot/kind */
 	if ( mode == 2 )
 	{
-		stats_slot = STATISTIC_SLOT_2D;
+		stats_slot = gserialized_stats_slot(stats, STATISTIC_SLOT_2D);
 		stats_kind = STATISTIC_KIND_2D;
 	}
 	else
 	{
-		stats_slot = STATISTIC_SLOT_ND;
+		stats_slot = gserialized_stats_slot(stats, STATISTIC_SLOT_ND);
 		stats_kind = STATISTIC_KIND_ND;
+	}
+
+	if ( stats_slot < 0 )
+	{
+		/*
+		 * No room left (standard stats used every slot not reserved by
+		 * Cloudberry). Skip this histogram; the estimators fall back to
+		 * default selectivity when the kind is missing. Leave stats_valid
+		 * alone so stats already stored (standard, 2D) are kept.
+		 */
+		elog(DEBUG1, "no free statistics slot for kind %d, skipping", stats_kind);
+		return;
 	}
 
 	/* Write the statistics data */
@@ -2251,7 +2297,9 @@ gserialized_sel_internal(PlannerInfo *root, List *args, int varRelid, int mode)
 	nd_stats = pg_nd_stats_from_tuple(vardata.statsTuple, mode);
 	ReleaseVariableStats(vardata);
 	selectivity = estimate_selectivity(&search_box, nd_stats, mode);
-	pfree(nd_stats);
+	/* nd_stats is NULL when the tuple lacks our stats kind; pfree(NULL) crashes */
+	if (nd_stats)
+		pfree(nd_stats);
 	return selectivity;
 }
 
