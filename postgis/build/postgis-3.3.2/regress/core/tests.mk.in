@@ -77,6 +77,7 @@ TESTS += \
 	$(top_srcdir)/regress/core/regress_index_nulls \
 	$(top_srcdir)/regress/core/regress_management \
 	$(top_srcdir)/regress/core/regress_selectivity \
+	$(top_srcdir)/regress/core/regress_selectivity_partition \
 	$(top_srcdir)/regress/core/regress_lrs \
 	$(top_srcdir)/regress/core/regress_ogc \
 	$(top_srcdir)/regress/core/regress_ogc_cover \
